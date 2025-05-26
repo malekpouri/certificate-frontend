@@ -1,9 +1,24 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider } from './context/AuthContext';
 import useAuth from './hooks/useAuth';
-import LoginPage from './pages/LoginPage.jsx';
-import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
+
+// Auth Components
+import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+// Main Pages
+import DashboardPage from './pages/DashboardPage';
+import CertificatesPage from './pages/CertificatesPage';
+import CertificateDetailPage from './pages/CertificateDetailPage';
+import StudentsPage from './pages/StudentsPage';
+import StudentDetailPage from './pages/StudentDetailPage';
+import CoursesPage from './pages/CoursesPage';
+import CourseDetailPage from './pages/CourseDetailPage';
+
+// Components
+import CertificateValidator from './components/certificate/CertificateValidator';
+
 import './App.css';
 
 const HomePage = () => {
@@ -73,48 +88,221 @@ const HomePage = () => {
     );
 };
 
-const Dashboard = () => {
-    const { user, logout } = useAuth();
-
-    const handleLogout = async () => {
-        await logout();
-        window.location.href = '/';
-    };
-
-    return (
-        <div className="dashboard">
-            <header className="dashboard-header">
-                <h1>داشبورد</h1>
-                <div className="user-info">
-                    <span>خوش آمدید، {user?.username}</span>
-                    <button onClick={handleLogout} className="btn-secondary">
-                        خروج
-                    </button>
-                </div>
-            </header>
-            <main>
-                <p>محتوای داشبورد در اینجا قرار خواهد گرفت</p>
-            </main>
-        </div>
-    );
-};
-
 function App() {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
+                    {/* Public Routes */}
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/validate" element={<CertificateValidator />} />
+                    <Route path="/validate/:id" element={<CertificateValidator />} />
+
+                    {/* Protected Routes */}
                     <Route
                         path="/dashboard"
                         element={
                             <ProtectedRoute>
-                                <Dashboard />
+                                <DashboardPage />
                             </ProtectedRoute>
                         }
                     />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+
+                    {/* Certificate Routes */}
+                    <Route
+                        path="/certificates"
+                        element={
+                            <ProtectedRoute>
+                                <CertificatesPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/certificates/create"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <CertificatesPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/certificates/:id"
+                        element={
+                            <ProtectedRoute>
+                                <CertificateDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/certificates/:id/edit"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <CertificateDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Student Routes */}
+                    <Route
+                        path="/students"
+                        element={
+                            <ProtectedRoute>
+                                <StudentsPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/students/create"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <StudentsPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/students/:id"
+                        element={
+                            <ProtectedRoute>
+                                <StudentDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/students/:id/edit"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <StudentDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Course Routes */}
+                    <Route
+                        path="/courses"
+                        element={
+                            <ProtectedRoute>
+                                <CoursesPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/courses/create"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <CoursesPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/courses/:id"
+                        element={
+                            <ProtectedRoute>
+                                <CourseDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/courses/:id/edit"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <CourseDetailPage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Placeholder Routes for Future Features */}
+                    <Route
+                        path="/search"
+                        element={
+                            <ProtectedRoute>
+                                <div className="page-container">
+                                    <div className="page-header">
+                                        <h1>جستجوی پیشرفته</h1>
+                                        <p>این بخش در حال توسعه است</p>
+                                    </div>
+                                </div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/reports"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <div className="page-container">
+                                    <div className="page-header">
+                                        <h1>گزارش‌گیری</h1>
+                                        <p>این بخش در حال توسعه است</p>
+                                    </div>
+                                </div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/settings"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <div className="page-container">
+                                    <div className="page-header">
+                                        <h1>تنظیمات سیستم</h1>
+                                        <p>این بخش در حال توسعه است</p>
+                                    </div>
+                                </div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/users"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <div className="page-container">
+                                    <div className="page-header">
+                                        <h1>مدیریت کاربران</h1>
+                                        <p>این بخش در حال توسعه است</p>
+                                    </div>
+                                </div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/logs"
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <div className="page-container">
+                                    <div className="page-header">
+                                        <h1>لاگ‌های سیستم</h1>
+                                        <p>این بخش در حال توسعه است</p>
+                                    </div>
+                                </div>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/help"
+                        element={
+                            <div className="page-container">
+                                <div className="page-header">
+                                    <h1>راهنما و پشتیبانی</h1>
+                                    <p>این بخش در حال توسعه است</p>
+                                </div>
+                            </div>
+                        }
+                    />
+
+                    {/* Catch All - Redirect to Dashboard or Home */}
+                    <Route
+                        path="*"
+                        element={
+                            <ProtectedRoute redirectTo="/">
+                                <Navigate to="/dashboard" replace />
+                            </ProtectedRoute>
+                        }
+                    />
                 </Routes>
             </Router>
         </AuthProvider>

@@ -6,7 +6,7 @@ import {
 } from '../utils/tokenHelper';
 
 // Base URL برای API - باید با backend شما تطبیق داده شود
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Helper function برای handle کردن API responses
