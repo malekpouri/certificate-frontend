@@ -1,7 +1,22 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
+import useAuth from './hooks/useAuth';
+import LoginPage from './pages/LoginPage.jsx';
+import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import './App.css';
 
-function App() {
+const HomePage = () => {
+    const { isAuthenticated } = useAuth();
+
+    const handleLoginClick = () => {
+        window.location.href = '/login';
+    };
+
+    const handleDashboardClick = () => {
+        window.location.href = '/dashboard';
+    };
+
     return (
         <div className="App">
             <header className="App-header">
@@ -37,7 +52,15 @@ function App() {
                     </div>
 
                     <div className="action-buttons">
-                        <button className="btn-primary">ورود به سیستم</button>
+                        {isAuthenticated ? (
+                            <button className="btn-primary" onClick={handleDashboardClick}>
+                                ورود به داشبورد
+                            </button>
+                        ) : (
+                            <button className="btn-primary" onClick={handleLoginClick}>
+                                ورود به سیستم
+                            </button>
+                        )}
                         <button className="btn-secondary">مشاهده دمو</button>
                     </div>
                 </div>
@@ -47,6 +70,54 @@ function App() {
                 <p>&copy; 2025 سیستم مدیریت گواهی‌نامه. تمامی حقوق محفوظ است.</p>
             </footer>
         </div>
+    );
+};
+
+const Dashboard = () => {
+    const { user, logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+        window.location.href = '/';
+    };
+
+    return (
+        <div className="dashboard">
+            <header className="dashboard-header">
+                <h1>داشبورد</h1>
+                <div className="user-info">
+                    <span>خوش آمدید، {user?.username}</span>
+                    <button onClick={handleLogout} className="btn-secondary">
+                        خروج
+                    </button>
+                </div>
+            </header>
+            <main>
+                <p>محتوای داشبورد در اینجا قرار خواهد گرفت</p>
+            </main>
+        </div>
+    );
+};
+
+function App() {
+    return (
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 }
 
