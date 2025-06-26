@@ -1,0 +1,256 @@
+/* Chart Widget Styles */
+.chart-widget {
+    width: 100%;
+}
+
+.chart-title {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #7f8c8d;
+    border: 2px dashed #dee2e6;
+}
+
+/* Bar Chart */
+.bar-chart {
+    position: relative;
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    width: 100%;
+    height: 100%;
+    gap: 0.5rem;
+}
+
+.bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bar-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.bar {
+    width: 80%;
+    max-width: 60px;
+    background: #667eea;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 0.5rem;
+    animation: growBar 1s ease-out;
+}
+
+@keyframes growBar {
+    from {
+        height: 0 !important;
+    }
+}
+
+.bar:hover {
+    opacity: 0.8;
+    transform: translateY(-2px);
+}
+
+.bar-value {
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.bar-label {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Line Chart */
+.line-chart {
+    position: relative;
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.line-chart svg {
+    width: 100%;
+    height: calc(100% - 30px);
+}
+
+.point-value {
+    fill: #2c3e50;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.line-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
+.line-label {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+/* Pie Chart */
+.pie-chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.pie-chart svg {
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.pie-value {
+    fill: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+.bar, .line-chart polyline, .pie-chart path {
+    animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .bar-chart {
+        padding: 0.5rem;
+    }
+
+    .bar {
+        max-width: 40px;
+    }
+
+    .bar-value {
+        font-size: 0.8rem;
+    }
+
+    .bar-label {
+        font-size: 0.7rem;
+    }
+
+    .pie-chart {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .line-labels {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-bars {
+        gap: 0.25rem;
+    }
+
+    .bar {
+        max-width: 30px;
+    }
+
+    .bar-value {
+        font-size: 0.7rem;
+    }
+
+    .bar-label {
+        font-size: 0.6rem;
+        transform: rotate(-45deg);
+        transform-origin: center;
+        margin-top: 0.5rem;
+    }
+
+    .pie-chart svg {
+        max-width: 150px;
+        max-height: 150px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .chart-widget {
+        page-break-inside: avoid;
+    }
+
+    .bar-chart,
+    .line-chart,
+    .pie-chart {
+        background: white;
+        border: 1px solid #ccc;
+    }
+}
