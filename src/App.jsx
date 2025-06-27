@@ -4,7 +4,18 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import useAuth from './hooks/useAuth';
 import LoginPage from './pages/LoginPage.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
-import './App.css';
+import DashboardPage from './pages/DashboardPage.jsx';
+import StudentsPage from './pages/StudentsPage.jsx';
+import StudentDetailPage from './pages/StudentDetailPage.jsx';
+import StudentForm from './components/student/StudentForm.jsx';
+import CoursesPage from './pages/CoursesPage.jsx';
+import CourseDetailPage from './pages/CourseDetailPage.jsx';
+import CourseForm from './components/course/CourseForm.jsx';
+import CertificatesPage from './pages/CertificatesPage.jsx';
+import CertificateDetailPage from './pages/CertificateDetailPage.jsx';
+import CertificateForm from './components/certificate/CertificateForm.jsx';
+import CertificateValidator from './components/certificate/CertificateValidator.jsx';
+import './styles/App.css';
 
 const HomePage = () => {
     const { isAuthenticated } = useAuth();
@@ -73,31 +84,6 @@ const HomePage = () => {
     );
 };
 
-const Dashboard = () => {
-    const { user, logout } = useAuth();
-
-    const handleLogout = async () => {
-        await logout();
-        window.location.href = '/';
-    };
-
-    return (
-        <div className="dashboard">
-            <header className="dashboard-header">
-                <h1>داشبورد</h1>
-                <div className="user-info">
-                    <span>خوش آمدید، {user?.username}</span>
-                    <button onClick={handleLogout} className="btn-secondary">
-                        خروج
-                    </button>
-                </div>
-            </header>
-            <main>
-                <p>محتوای داشبورد در اینجا قرار خواهد گرفت</p>
-            </main>
-        </div>
-    );
-};
 
 function App() {
     return (
@@ -106,14 +92,39 @@ function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
+
+                    {/* Protected Routes nested under DashboardPage */}
                     <Route
                         path="/dashboard"
                         element={
                             <ProtectedRoute>
-                                <Dashboard />
+                                <DashboardPage />
                             </ProtectedRoute>
                         }
-                    />
+                    >
+                        {/* Nested routes for managing students, courses, certificates */}
+                        <Route index element={<div className="dashboard-content">محتوای داشبورد اصلی</div>} /> {/* Default content for /dashboard */}
+
+                        <Route path="students" element={<StudentsPage />} />
+                        <Route path="students/new" element={<StudentForm />} />
+                        <Route path="students/:id" element={<StudentDetailPage />} />
+                        <Route path="students/:id/edit" element={<StudentForm />} />
+
+                        <Route path="courses" element={<CoursesPage />} />
+                        <Route path="courses/new" element={<CourseForm />} />
+                        <Route path="courses/:id" element={<CourseDetailPage />} />
+                        <Route path="courses/:id/edit" element={<CourseForm />} />
+
+                        <Route path="certificates" element={<CertificatesPage />} />
+                        <Route path="certificates/new" element={<CertificateForm />} />
+                        <Route path="certificates/:id" element={<CertificateDetailPage />} />
+                        <Route path="certificates/:id/edit" element={<CertificateForm />} />
+
+                        {/* Add other protected routes here */}
+                    </Route>
+
+                    <Route path="/validate" element={<CertificateValidator />} /> {/* This route will be /dashboard/validate */}
+                    {/* Fallback for unmatched routes */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Router>
