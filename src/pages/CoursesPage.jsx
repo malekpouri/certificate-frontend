@@ -48,17 +48,7 @@ const CoursesPage = () => {
                         </button>
                     )}
 
-                    <Link to="/courses/categories" className="btn btn-secondary">
-                        مدیریت دسته‌ها
-                    </Link>
-
-                    <Link to="/courses/import" className="btn btn-outline">
-                        ورود دسته‌ای
-                    </Link>
-
-                    <Link to="/courses/export" className="btn btn-outline">
-                        خروجی Excel
-                    </Link>
+                    {/* Removed links to /courses/categories, /courses/import, /courses/export */}
                 </div>
             </div>
 

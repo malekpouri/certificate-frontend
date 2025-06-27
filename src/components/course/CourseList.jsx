@@ -10,7 +10,7 @@ const CourseList = ({
                         pageSize = 12
                     }) => {
     const [courses, setCourses] = useState([]);
-    const [categories, setCategories] = useState([]);
+    // Removed categories state as they are not supported by backend
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({
@@ -22,33 +22,13 @@ const CourseList = ({
     });
 
     const [searchFilters, setSearchFilters] = useState({
-        search: '',
-        category: '',
-        instructor: '',
-        difficulty_level: '',
-        is_active: '',
-        ordering: '-created_at',
+        search: '', // Only basic search is supported
         ...filters
     });
 
     useEffect(() => {
-        loadInitialData();
-    }, []);
-
-    useEffect(() => {
         loadCourses();
     }, [pagination.page, searchFilters]);
-
-    const loadInitialData = async () => {
-        try {
-            const categoriesResult = await courseService.getCourseCategories();
-            if (categoriesResult.success) {
-                setCategories(categoriesResult.data);
-            }
-        } catch (error) {
-            console.error('Error loading categories:', error);
-        }
-    };
 
     const loadCourses = async () => {
         setIsLoading(true);
@@ -56,7 +36,7 @@ const CourseList = ({
 
         try {
             const result = await courseService.getCourses({
-                ...searchFilters,
+                search: searchFilters.search, // Only search filter
                 page: pagination.page,
                 page_size: pageSize,
             });
@@ -109,12 +89,7 @@ const CourseList = ({
     };
 
     const handleCourseDelete = (deletedId) => {
-        setCourses(prev => prev.filter(course => course.id !== deletedId));
-        setPagination(prev => ({
-            ...prev,
-            totalCount: prev.totalCount - 1,
-            totalPages: Math.ceil((prev.totalCount - 1) / pageSize)
-        }));
+        loadCourses(); // Re-fetch the list after deletion
     };
 
     const handleCourseDuplicate = (newCourse) => {
@@ -129,42 +104,8 @@ const CourseList = ({
     const resetFilters = () => {
         setSearchFilters({
             search: '',
-            category: '',
-            instructor: '',
-            difficulty_level: '',
-            is_active: '',
-            ordering: '-created_at',
         });
         setPagination(prev => ({ ...prev, page: 1 }));
-    };
-
-    const getStatusText = (value) => {
-        switch (value) {
-            case 'true': return 'فعال';
-            case 'false': return 'غیرفعال';
-            default: return 'همه';
-        }
-    };
-
-    const getDifficultyText = (value) => {
-        switch (value) {
-            case 'beginner': return 'مبتدی';
-            case 'intermediate': return 'متوسط';
-            case 'advanced': return 'پیشرفته';
-            default: return 'همه';
-        }
-    };
-
-    const getOrderingText = (value) => {
-        switch (value) {
-            case 'title': return 'عنوان (الف-ی)';
-            case '-title': return 'عنوان (ی-الف)';
-            case 'created_at': return 'قدیمی‌ترین';
-            case '-created_at': return 'جدیدترین';
-            case 'start_date': return 'تاریخ شروع';
-            case '-start_date': return 'تاریخ شروع (نزولی)';
-            default: return 'مرتب‌سازی';
-        }
     };
 
     if (error) {
@@ -196,75 +137,7 @@ const CourseList = ({
                                 />
                             </div>
 
-                            <div className="filter-group">
-                                <select
-                                    name="category"
-                                    value={searchFilters.category}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="">همه دسته‌ها</option>
-                                    {categories.map(category => (
-                                        <option key={category.id || category} value={category.name || category}>
-                                            {category.name || category}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="filter-group">
-                                <input
-                                    type="text"
-                                    name="instructor"
-                                    value={searchFilters.instructor}
-                                    onChange={handleFilterChange}
-                                    placeholder="نام مدرس..."
-                                    className="filter-input"
-                                />
-                            </div>
-
-                            <div className="filter-group">
-                                <select
-                                    name="difficulty_level"
-                                    value={searchFilters.difficulty_level}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="">همه سطوح</option>
-                                    <option value="beginner">مبتدی</option>
-                                    <option value="intermediate">متوسط</option>
-                                    <option value="advanced">پیشرفته</option>
-                                </select>
-                            </div>
-
-                            <div className="filter-group">
-                                <select
-                                    name="is_active"
-                                    value={searchFilters.is_active}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="">همه وضعیت‌ها</option>
-                                    <option value="true">فعال</option>
-                                    <option value="false">غیرفعال</option>
-                                </select>
-                            </div>
-
-                            <div className="filter-group">
-                                <select
-                                    name="ordering"
-                                    value={searchFilters.ordering}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="-created_at">جدیدترین</option>
-                                    <option value="created_at">قدیمی‌ترین</option>
-                                    <option value="title">عنوان (الف-ی)</option>
-                                    <option value="-title">عنوان (ی-الف)</option>
-                                    <option value="start_date">تاریخ شروع</option>
-                                    <option value="-start_date">تاریخ شروع (نزولی)</option>
-                                </select>
-                            </div>
+                            {/* Removed category, instructor, difficulty_level, is_active, ordering select inputs */}
 
                             <div className="filter-actions">
                                 <button type="submit" className="btn btn-primary btn-sm">
@@ -288,39 +161,12 @@ const CourseList = ({
           <span className="total-count">
             {pagination.totalCount} دوره
           </span>
-                    {Object.values(searchFilters).some(filter => filter && filter !== '-created_at') && (
+                    {searchFilters.search && ( // Simplified active filters display
                         <div className="active-filters">
                             <span className="filter-label">فیلترهای فعال:</span>
-                            {searchFilters.search && (
-                                <span className="filter-tag">
-                  جستجو: {searchFilters.search}
-                </span>
-                            )}
-                            {searchFilters.category && (
-                                <span className="filter-tag">
-                  دسته: {searchFilters.category}
-                </span>
-                            )}
-                            {searchFilters.instructor && (
-                                <span className="filter-tag">
-                  مدرس: {searchFilters.instructor}
-                </span>
-                            )}
-                            {searchFilters.difficulty_level && (
-                                <span className="filter-tag">
-                  سطح: {getDifficultyText(searchFilters.difficulty_level)}
-                </span>
-                            )}
-                            {searchFilters.is_active && (
-                                <span className="filter-tag">
-                  وضعیت: {getStatusText(searchFilters.is_active)}
-                </span>
-                            )}
-                            {searchFilters.ordering && searchFilters.ordering !== '-created_at' && (
-                                <span className="filter-tag">
-                  مرتب‌سازی: {getOrderingText(searchFilters.ordering)}
-                </span>
-                            )}
+                            <span className="filter-tag">
+                                جستجو: {searchFilters.search}
+                            </span>
                         </div>
                     )}
                 </div>
