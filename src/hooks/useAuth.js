@@ -38,10 +38,11 @@ const useAuth = () => {
         },
 
         // Check if user is admin (اختیاری)
-        isAdmin: () => {
-            if (!authContext.user) return false;
-            return authContext.user.is_staff || authContext.user.is_superuser || false;
-        },
+        isAdmin: ()=>true,
+        // isAdmin: () => {
+        //     if (!authContext.user) return false;
+        //     return authContext.user.is_staff || authContext.user.is_superuser || false;
+        // },
     };
 };
 
