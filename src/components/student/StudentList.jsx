@@ -21,10 +21,8 @@ const StudentList = ({
     });
 
     const [searchFilters, setSearchFilters] = useState({
-        search: '',
-        email: '',
-        student_id: '',
-        is_active: '',
+        search: '', // Only search is supported by backend definition
+        // Removed email, student_id, is_active filters as per backend definition
         ...filters
     });
 
@@ -38,7 +36,7 @@ const StudentList = ({
 
         try {
             const result = await studentService.getStudents({
-                ...searchFilters,
+                search: searchFilters.search, // Only search parameter is sent
                 page: pagination.page,
                 page_size: pageSize,
             });
@@ -91,31 +89,18 @@ const StudentList = ({
     };
 
     const handleStudentDelete = (deletedId) => {
-        setStudents(prev => prev.filter(student => student.id !== deletedId));
-        setPagination(prev => ({
-            ...prev,
-            totalCount: prev.totalCount - 1,
-            totalPages: Math.ceil((prev.totalCount - 1) / pageSize)
-        }));
+        // Re-fetch the list to ensure consistency with backend after deletion
+        loadStudents();
     };
 
     const resetFilters = () => {
         setSearchFilters({
             search: '',
-            email: '',
-            student_id: '',
-            is_active: '',
         });
         setPagination(prev => ({ ...prev, page: 1 }));
     };
 
-    const getStatusText = (value) => {
-        switch (value) {
-            case 'true': return 'فعال';
-            case 'false': return 'غیرفعال';
-            default: return 'همه';
-        }
-    };
+    // Removed getStatusText as is_active filter is removed
 
     if (error) {
         return (
@@ -146,40 +131,7 @@ const StudentList = ({
                                 />
                             </div>
 
-                            <div className="filter-group">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={searchFilters.email}
-                                    onChange={handleFilterChange}
-                                    placeholder="جستجو در ایمیل..."
-                                    className="filter-input"
-                                />
-                            </div>
-
-                            <div className="filter-group">
-                                <input
-                                    type="text"
-                                    name="student_id"
-                                    value={searchFilters.student_id}
-                                    onChange={handleFilterChange}
-                                    placeholder="شماره دانشجویی..."
-                                    className="filter-input"
-                                />
-                            </div>
-
-                            <div className="filter-group">
-                                <select
-                                    name="is_active"
-                                    value={searchFilters.is_active}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="">همه وضعیت‌ها</option>
-                                    <option value="true">فعال</option>
-                                    <option value="false">غیرفعال</option>
-                                </select>
-                            </div>
+                            {/* Removed email, student_id, is_active filter inputs */}
 
                             <div className="filter-actions">
                                 <button type="submit" className="btn btn-primary btn-sm">
@@ -203,29 +155,12 @@ const StudentList = ({
           <span className="total-count">
             {pagination.totalCount} دانشجو
           </span>
-                    {Object.values(searchFilters).some(filter => filter) && (
+                    {searchFilters.search && ( // Simplified active filters display
                         <div className="active-filters">
                             <span className="filter-label">فیلترهای فعال:</span>
-                            {searchFilters.search && (
-                                <span className="filter-tag">
-                  جستجو: {searchFilters.search}
-                </span>
-                            )}
-                            {searchFilters.email && (
-                                <span className="filter-tag">
-                  ایمیل: {searchFilters.email}
-                </span>
-                            )}
-                            {searchFilters.student_id && (
-                                <span className="filter-tag">
-                  شماره: {searchFilters.student_id}
-                </span>
-                            )}
-                            {searchFilters.is_active && (
-                                <span className="filter-tag">
-                  وضعیت: {getStatusText(searchFilters.is_active)}
-                </span>
-                            )}
+                            <span className="filter-tag">
+                                جستجو: {searchFilters.search}
+                            </span>
                         </div>
                     )}
                 </div>
