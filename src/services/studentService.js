@@ -4,8 +4,26 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 const handleResponse = async (response) => {
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || error.detail || 'خطا در برقراری ارتباط با سرور');
+        let errorData = {};
+        try {
+            errorData = await response.json(); // Try to parse JSON error response
+        } catch (e) {
+            // If response is not JSON, use generic error
+            errorData = { message: 'خطا در برقراری ارتباط با سرور یا پاسخ غیرقابل خواندن' };
+        }
+
+        // If it's a 400 Bad Request, it might contain field-specific errors
+        if (response.status === 400) {
+            // Return the full errorData if it's a 400, so form can display field errors
+            const errorMessage = errorData.detail || Object.values(errorData).flat().join(' و ') || 'خطا در اطلاعات ارسالی';
+            throw { status: 400, message: errorMessage, errors: errorData }; // Throw object with errors
+        }
+
+        throw new Error(errorData.message || errorData.detail || 'خطا در برقراری ارتباط با سرور');
+    }
+
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+        return {};
     }
 
     return response.json();
@@ -33,9 +51,6 @@ export const getStudents = async (filters = {}) => {
         const queryParams = new URLSearchParams();
 
         if (filters.search) queryParams.append('search', filters.search);
-        if (filters.email) queryParams.append('email', filters.email);
-        if (filters.student_id) queryParams.append('student_id', filters.student_id);
-        if (filters.is_active !== undefined) queryParams.append('is_active', filters.is_active);
         if (filters.page) queryParams.append('page', filters.page);
         if (filters.page_size) queryParams.append('page_size', filters.page_size);
 
@@ -54,7 +69,8 @@ export const getStudents = async (filters = {}) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در دریافت دانشجویان'
+            message: error.message?.message || error.message || 'خطا در دریافت دانشجویان', // Adjusted to handle thrown object
+            errors: error.errors || {}
         };
     }
 };
@@ -70,7 +86,8 @@ export const getStudent = async (id) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در دریافت اطلاعات دانشجو'
+            message: error.message?.message || error.message || 'خطا در دریافت اطلاعات دانشجو', // Adjusted
+            errors: error.errors || {}
         };
     }
 };
@@ -79,7 +96,13 @@ export const createStudent = async (studentData) => {
     try {
         const data = await apiRequest('/students/', {
             method: 'POST',
-            body: JSON.stringify(studentData),
+            body: JSON.stringify({
+                student_id: studentData.student_id,
+                first_name: studentData.first_name,
+                last_name: studentData.last_name,
+                email: studentData.email,
+                date_of_birth: studentData.date_of_birth,
+            }),
         });
 
         return {
@@ -90,7 +113,8 @@ export const createStudent = async (studentData) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در ایجاد دانشجو'
+            message: error.message?.message || error.message || 'خطا در ایجاد دانشجو', // Adjusted
+            errors: error.errors || {}
         };
     }
 };
@@ -99,7 +123,13 @@ export const updateStudent = async (id, studentData) => {
     try {
         const data = await apiRequest(`/students/${id}/`, {
             method: 'PUT',
-            body: JSON.stringify(studentData),
+            body: JSON.stringify({
+                student_id: studentData.student_id,
+                first_name: studentData.first_name,
+                last_name: studentData.last_name,
+                email: studentData.email,
+                date_of_birth: studentData.date_of_birth,
+            }),
         });
 
         return {
@@ -110,7 +140,8 @@ export const updateStudent = async (id, studentData) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در بروزرسانی اطلاعات دانشجو'
+            message: error.message?.message || error.message || 'خطا در بروزرسانی اطلاعات دانشجو', // Adjusted
+            errors: error.errors || {}
         };
     }
 };
@@ -128,121 +159,13 @@ export const deleteStudent = async (id) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در حذف دانشجو'
+            message: error.message?.message || error.message || 'خطا در حذف دانشجو', // Adjusted
+            errors: error.errors || {}
         };
     }
 };
 
-export const getStudentCertificates = async (id, filters = {}) => {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (filters.page) queryParams.append('page', filters.page);
-        if (filters.page_size) queryParams.append('page_size', filters.page_size);
-
-        const queryString = queryParams.toString();
-        const url = queryString
-            ? `/students/${id}/certificates/?${queryString}`
-            : `/students/${id}/certificates/`;
-
-        const data = await apiRequest(url);
-
-        return {
-            success: true,
-            data: data.results || data,
-            count: data.count || (Array.isArray(data) ? data.length : 0),
-            next: data.next || null,
-            previous: data.previous || null,
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'خطا در دریافت گواهی‌نامه‌های دانشجو'
-        };
-    }
-};
-
-export const getStudentStatistics = async (id) => {
-    try {
-        const data = await apiRequest(`/students/${id}/statistics/`);
-
-        return {
-            success: true,
-            data: data
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'خطا در دریافت آمار دانشجو'
-        };
-    }
-};
-
-export const activateStudent = async (id) => {
-    try {
-        const data = await apiRequest(`/students/${id}/activate/`, {
-            method: 'PATCH',
-        });
-
-        return {
-            success: true,
-            data: data,
-            message: 'دانشجو فعال شد'
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'خطا در فعال‌سازی دانشجو'
-        };
-    }
-};
-
-export const deactivateStudent = async (id) => {
-    try {
-        const data = await apiRequest(`/students/${id}/deactivate/`, {
-            method: 'PATCH',
-        });
-
-        return {
-            success: true,
-            data: data,
-            message: 'دانشجو غیرفعال شد'
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'خطا در غیرفعال‌سازی دانشجو'
-        };
-    }
-};
-
-export const uploadStudentAvatar = async (id, file) => {
-    try {
-        const formData = new FormData();
-        formData.append('avatar', file);
-
-        const response = await fetch(`${API_BASE_URL}/students/${id}/avatar/`, {
-            method: 'PATCH',
-            headers: {
-                ...getAuthHeader(),
-            },
-            body: formData,
-        });
-
-        const data = await handleResponse(response);
-
-        return {
-            success: true,
-            data: data,
-            message: 'تصویر پروفایل بروزرسانی شد'
-        };
-    } catch (error) {
-        return {
-            success: false,
-            message: error.message || 'خطا در بروزرسانی تصویر پروفایل'
-        };
-    }
-};
+// Removed other functions as per backend definition
 
 const studentService = {
     getStudents,
@@ -250,11 +173,6 @@ const studentService = {
     createStudent,
     updateStudent,
     deleteStudent,
-    getStudentCertificates,
-    getStudentStatistics,
-    activateStudent,
-    deactivateStudent,
-    uploadStudentAvatar,
 };
 
 export default studentService;

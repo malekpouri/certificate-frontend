@@ -6,24 +6,7 @@ import '../../styles/Student.css';
 const StudentCard = ({ student, onUpdate, onDelete }) => {
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleToggleStatus = async () => {
-        setIsLoading(true);
-
-        const result = student.is_active
-            ? await studentService.deactivateStudent(student.id)
-            : await studentService.activateStudent(student.id);
-
-        if (result.success) {
-            if (onUpdate) {
-                onUpdate(result.data);
-            }
-            alert(result.message);
-        } else {
-            alert(result.message);
-        }
-
-        setIsLoading(false);
-    };
+    // Removed handleToggleStatus as is_active status is not supported by backend definition
 
     const handleDelete = async () => {
         if (!window.confirm('آیا از حذف این دانشجو اطمینان دارید؟')) {
@@ -54,28 +37,16 @@ const StudentCard = ({ student, onUpdate, onDelete }) => {
         return student.full_name || `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'نام نامشخص';
     };
 
-    const getAvatarUrl = () => {
-        if (student.avatar) {
-            return student.avatar.startsWith('http') ? student.avatar : `${import.meta.env.VITE_API_URL}${student.avatar}`;
-        }
-        return null;
-    };
+    // Removed getAvatarUrl as avatar is not supported by backend definition
 
     return (
         <div className="student-card">
             <div className="student-card-header">
                 <div className="student-avatar">
-                    {getAvatarUrl() ? (
-                        <img
-                            src={getAvatarUrl()}
-                            alt={getFullName()}
-                            className="avatar-image"
-                        />
-                    ) : (
-                        <div className="avatar-placeholder">
-                            {getFullName().charAt(0).toUpperCase()}
-                        </div>
-                    )}
+                    {/* Removed getAvatarUrl() logic, only placeholder remains */}
+                    <div className="avatar-placeholder">
+                        {getFullName().charAt(0).toUpperCase()}
+                    </div>
                 </div>
 
                 <div className="student-basic-info">
@@ -83,11 +54,7 @@ const StudentCard = ({ student, onUpdate, onDelete }) => {
                     {student.student_id && (
                         <p className="student-id">شماره دانشجویی: {student.student_id}</p>
                     )}
-                    <div className="student-status">
-            <span className={`status-badge ${student.is_active ? 'active' : 'inactive'}`}>
-              {student.is_active ? 'فعال' : 'غیرفعال'}
-            </span>
-                    </div>
+                    {/* Removed student-status display as is_active is not supported by backend definition */}
                 </div>
             </div>
 
@@ -100,17 +67,12 @@ const StudentCard = ({ student, onUpdate, onDelete }) => {
                         </div>
                     )}
 
-                    {student.phone && (
-                        <div className="info-item">
-                            <span className="info-icon">📱</span>
-                            <span className="info-value">{student.phone}</span>
-                        </div>
-                    )}
+                    {/* Removed phone info-item */}
 
-                    {student.birth_date && (
+                    {student.date_of_birth && ( // Changed from birth_date
                         <div className="info-item">
                             <span className="info-icon">🎂</span>
-                            <span className="info-value">تولد: {formatDate(student.birth_date)}</span>
+                            <span className="info-value">تولد: {formatDate(student.date_of_birth)}</span> {/* Changed from birth_date */}
                         </div>
                     )}
 
@@ -119,44 +81,28 @@ const StudentCard = ({ student, onUpdate, onDelete }) => {
                         <span className="info-value">عضویت: {formatDate(student.created_at)}</span>
                     </div>
 
-                    {student.certificates_count !== undefined && (
-                        <div className="info-item">
-                            <span className="info-icon">🎓</span>
-                            <span className="info-value">{student.certificates_count} گواهی‌نامه</span>
-                        </div>
-                    )}
+                    {/* Removed certificates_count info-item */}
                 </div>
 
-                {student.address && (
-                    <div className="student-address">
-                        <span className="info-icon">📍</span>
-                        <span className="address-text">{student.address}</span>
-                    </div>
-                )}
+                {/* Removed student-address display */}
             </div>
 
             <div className="student-card-actions">
                 <Link
-                    to={`/students/${student.id}`}
+                    to={`/dashboard/students/${student.id}`} // Adjusted for dashboard nesting
                     className="btn btn-primary btn-sm"
                 >
                     مشاهده
                 </Link>
 
                 <Link
-                    to={`/students/${student.id}/edit`}
+                    to={`/dashboard/students/${student.id}/edit`} // Adjusted for dashboard nesting
                     className="btn btn-outline btn-sm"
                 >
                     ویرایش
                 </Link>
 
-                <button
-                    onClick={handleToggleStatus}
-                    className={`btn btn-sm ${student.is_active ? 'btn-warning' : 'btn-success'}`}
-                    disabled={isLoading}
-                >
-                    {student.is_active ? 'غیرفعال' : 'فعال'}
-                </button>
+                {/* Removed toggle status button */}
 
                 <button
                     onClick={handleDelete}

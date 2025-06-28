@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, {useState} from 'react';
+import {Link} from 'react-router-dom';
 import StudentList from '../components/student/StudentList';
 import StudentForm from '../components/student/StudentForm';
 import useAuth from '../hooks/useAuth';
@@ -11,11 +11,13 @@ const StudentsPage = () => {
     const [refreshList, setRefreshList] = useState(0);
 
     const handleCreateSuccess = (newStudent) => {
+        console.log("StudentsPage: handleCreateSuccess called. Hiding form and refreshing list."); // لاگ تشخیصی
         setShowCreateForm(false);
         setRefreshList(prev => prev + 1);
     };
 
     const handleCreateCancel = () => {
+        console.log("StudentsPage: handleCreateCancel called. Hiding form."); // لاگ تشخیصی
         setShowCreateForm(false);
     };
 

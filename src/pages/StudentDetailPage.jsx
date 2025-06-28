@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import StudentForm from '../components/student/StudentForm';
-import CertificateList from '../components/certificate/CertificateList';
+// Removed CertificateList import as certificates tab is no longer supported
 import studentService from '../services/studentService';
 import useAuth from '../hooks/useAuth';
 import '../styles/Student.css';
@@ -12,11 +12,13 @@ const StudentDetailPage = () => {
     const { isAdmin } = useAuth();
 
     const [student, setStudent] = useState(null);
-    const [statistics, setStatistics] = useState(null);
+    // Removed statistics state as statistics functionality is no longer supported
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('info');
+    // Removed activeTab state as only info tab will remain
+    // Removed getAvatarUrl as avatar is not supported
+
 
     useEffect(() => {
         loadStudentData();
@@ -27,19 +29,13 @@ const StudentDetailPage = () => {
         setError(null);
 
         try {
-            const [studentResult, statsResult] = await Promise.all([
-                studentService.getStudent(id),
-                studentService.getStudentStatistics(id)
-            ]);
+            // Only fetch student details, as statistics/certificates are not supported by simplified backend
+            const studentResult = await studentService.getStudent(id);
 
             if (studentResult.success) {
                 setStudent(studentResult.data);
             } else {
                 setError(studentResult.message);
-            }
-
-            if (statsResult.success) {
-                setStatistics(statsResult.data);
             }
         } catch (error) {
             setError('خطا در دریافت اطلاعات دانشجو');
@@ -57,32 +53,23 @@ const StudentDetailPage = () => {
 
         if (result.success) {
             alert(result.message);
-            navigate('/students');
+            navigate('/dashboard/students'); // Adjusted for dashboard nesting
         } else {
             alert(result.message);
         }
     };
 
-    const handleToggleStatus = async () => {
-        const result = student.is_active
-            ? await studentService.deactivateStudent(id)
-            : await studentService.activateStudent(id);
-
-        if (result.success) {
-            setStudent(result.data);
-            alert(result.message);
-        } else {
-            alert(result.message);
-        }
-    };
+    // Removed handleToggleStatus as is_active status is not supported by backend definition
 
     const handleEditSuccess = (updatedStudent) => {
         setStudent(updatedStudent);
         setIsEditing(false);
+        navigate('/dashboard/students'); // Navigate back to student list after successful edit
     };
 
     const handleEditCancel = () => {
-        setIsEditing(false);
+        console.log("StudentDetailPage: handleEditCancel called. Hiding form."); // Debug log
+        setIsEditing(false); // This will return to the detail view, which should now load correctly
     };
 
     const formatDate = (dateString) => {
@@ -95,14 +82,6 @@ const StudentDetailPage = () => {
         return student.full_name || `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'نام نامشخص';
     };
 
-    const getAvatarUrl = () => {
-        if (student?.avatar) {
-            return student.avatar.startsWith('http')
-                ? student.avatar
-                : `${import.meta.env.VITE_API_URL}${student.avatar}`;
-        }
-        return null;
-    };
 
     if (isLoading) {
         return (
@@ -125,7 +104,7 @@ const StudentDetailPage = () => {
                         <button onClick={loadStudentData} className="btn btn-primary">
                             تلاش مجدد
                         </button>
-                        <Link to="/students" className="btn btn-secondary">
+                        <Link to="/dashboard/students" className="btn btn-secondary">
                             بازگشت به لیست
                         </Link>
                     </div>
@@ -152,17 +131,10 @@ const StudentDetailPage = () => {
                 <div className="header-content">
                     <div className="student-header-info">
                         <div className="student-avatar-large">
-                            {getAvatarUrl() ? (
-                                <img
-                                    src={getAvatarUrl()}
-                                    alt={getFullName()}
-                                    className="avatar-image"
-                                />
-                            ) : (
-                                <div className="avatar-placeholder">
-                                    {getFullName().charAt(0).toUpperCase()}
-                                </div>
-                            )}
+                            {/* Avatar display removed as not supported by backend, only placeholder */}
+                            <div className="avatar-placeholder">
+                                {getFullName().charAt(0).toUpperCase()}
+                            </div>
                         </div>
 
                         <div className="student-header-details">
@@ -170,18 +142,14 @@ const StudentDetailPage = () => {
                             {student.student_id && (
                                 <p className="student-id">شماره دانشجویی: {student.student_id}</p>
                             )}
-                            <div className="header-meta">
-                <span className={`status-badge ${student.is_active ? 'active' : 'inactive'}`}>
-                  {student.is_active ? 'فعال' : 'غیرفعال'}
-                </span>
-                                <span className="join-date">عضویت: {formatDate(student.created_at)}</span>
-                            </div>
+                            {/* Removed is_active status display */}
+                            <span className="join-date">عضویت: {formatDate(student.created_at)}</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="header-actions">
-                    <Link to="/students" className="btn btn-outline">
+                    <Link to="/dashboard/students" className="btn btn-outline">
                         بازگشت به لیست
                     </Link>
 
@@ -194,12 +162,7 @@ const StudentDetailPage = () => {
                                 ویرایش
                             </button>
 
-                            <button
-                                onClick={handleToggleStatus}
-                                className={`btn ${student.is_active ? 'btn-warning' : 'btn-success'}`}
-                            >
-                                {student.is_active ? 'غیرفعال کردن' : 'فعال کردن'}
-                            </button>
+                            {/* Removed toggle status button */}
 
                             <button
                                 onClick={handleDelete}
@@ -215,133 +178,53 @@ const StudentDetailPage = () => {
             <div className="page-content">
                 <div className="student-detail-tabs">
                     <button
-                        onClick={() => setActiveTab('info')}
-                        className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
+                        onClick={() => {/* setActiveTab('info') implicitly as it's the only tab */}}
+                        className={`tab-button active`}
                     >
                         اطلاعات شخصی
                     </button>
-                    <button
-                        onClick={() => setActiveTab('certificates')}
-                        className={`tab-button ${activeTab === 'certificates' ? 'active' : ''}`}
-                    >
-                        گواهی‌نامه‌ها
-                        {statistics?.certificates_count > 0 && (
-                            <span className="tab-badge">{statistics.certificates_count}</span>
-                        )}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('statistics')}
-                        className={`tab-button ${activeTab === 'statistics' ? 'active' : ''}`}
-                    >
-                        آمار و ارقام
-                    </button>
+                    {/* Removed Certificates and Statistics tabs as related services are not supported by backend */}
                 </div>
 
                 <div className="tab-content">
-                    {activeTab === 'info' && (
-                        <div className="student-info-tab">
-                            <div className="info-cards-grid">
-                                <div className="info-card">
-                                    <h3>اطلاعات تماس</h3>
-                                    <div className="info-grid">
-                                        <div className="info-item">
-                                            <span className="info-label">ایمیل:</span>
-                                            <span className="info-value">{student.email || 'نامشخص'}</span>
-                                        </div>
-                                        {student.phone && (
-                                            <div className="info-item">
-                                                <span className="info-label">تلفن:</span>
-                                                <span className="info-value">{student.phone}</span>
-                                            </div>
-                                        )}
+                    {/* activeTab check removed as only one tab remains */}
+                    <div className="student-info-tab">
+                        <div className="info-cards-grid">
+                            <div className="info-card">
+                                <h3>اطلاعات تماس</h3>
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <span className="info-label">ایمیل:</span>
+                                        <span className="info-value">{student.email || 'نامشخص'}</span>
                                     </div>
+                                    {/* Removed phone info-item */}
                                 </div>
-
-                                <div className="info-card">
-                                    <h3>اطلاعات شخصی</h3>
-                                    <div className="info-grid">
-                                        {student.birth_date && (
-                                            <div className="info-item">
-                                                <span className="info-label">تاریخ تولد:</span>
-                                                <span className="info-value">{formatDate(student.birth_date)}</span>
-                                            </div>
-                                        )}
-                                        <div className="info-item">
-                                            <span className="info-label">وضعیت:</span>
-                                            <span className="info-value">
-                        {student.is_active ? 'فعال' : 'غیرفعال'}
-                      </span>
-                                        </div>
-                                        <div className="info-item">
-                                            <span className="info-label">تاریخ ثبت‌نام:</span>
-                                            <span className="info-value">{formatDate(student.created_at)}</span>
-                                        </div>
-                                        <div className="info-item">
-                                            <span className="info-label">آخرین بروزرسانی:</span>
-                                            <span className="info-value">{formatDate(student.updated_at)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {student.address && (
-                                    <div className="info-card full-width">
-                                        <h3>آدرس</h3>
-                                        <p className="address-text">{student.address}</p>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-                    )}
 
-                    {activeTab === 'certificates' && (
-                        <div className="certificates-tab">
-                            <CertificateList
-                                filters={{ student: id }}
-                                showFilters={false}
-                            />
-                        </div>
-                    )}
-
-                    {activeTab === 'statistics' && (
-                        <div className="statistics-tab">
-                            {statistics ? (
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <div className="stat-number">{statistics.certificates_count || 0}</div>
-                                        <div className="stat-label">تعداد گواهی‌نامه</div>
-                                    </div>
-
-                                    <div className="stat-card">
-                                        <div className="stat-number">{statistics.active_certificates || 0}</div>
-                                        <div className="stat-label">گواهی‌نامه فعال</div>
-                                    </div>
-
-                                    <div className="stat-card">
-                                        <div className="stat-number">{statistics.completed_courses || 0}</div>
-                                        <div className="stat-label">دوره تکمیل شده</div>
-                                    </div>
-
-                                    {statistics.average_grade && (
-                                        <div className="stat-card">
-                                            <div className="stat-number">{statistics.average_grade.toFixed(2)}</div>
-                                            <div className="stat-label">میانگین نمرات</div>
+                            <div className="info-card">
+                                <h3>اطلاعات شخصی</h3>
+                                <div className="info-grid">
+                                    {student.date_of_birth && ( // Using date_of_birth from backend
+                                        <div className="info-item">
+                                            <span className="info-label">تاریخ تولد:</span>
+                                            <span className="info-value">{formatDate(student.date_of_birth)}</span>
                                         </div>
                                     )}
+                                    {/* Removed is_active info-item */}
+                                    <div className="info-item">
+                                        <span className="info-label">تاریخ ثبت‌سیستم:</span>
+                                        <span className="info-value">{formatDate(student.created_at)}</span>
+                                    </div>
+                                    <div className="info-item">
+                                        <span className="info-label">آخرین بروزرسانی:</span>
+                                        <span className="info-value">{formatDate(student.updated_at)}</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                                    {statistics.last_certificate_date && (
-                                        <div className="stat-card full-width">
-                                            <div className="stat-label">آخرین گواهی‌نامه</div>
-                                            <div className="stat-value">{formatDate(statistics.last_certificate_date)}</div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="loading-container">
-                                    <p>در حال بارگذاری آمار...</p>
-                                </div>
-                            )}
+                            {/* Removed address info-card */}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
