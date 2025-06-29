@@ -23,17 +23,21 @@ const CertificateDetailPage = () => {
     const loadCertificate = async () => {
         setIsLoading(true);
         setError(null);
+        console.log("CertificateDetailPage: Attempting to load certificate with ID:", id); // لاگ تشخیصی
 
         try {
-            const result = await certificateService.getCertificate(id);
+            const result = await certificateService.getCertificate(id); // فراخوانی سرویس
 
             if (result.success) {
                 setCertificate(result.data);
+                console.log("CertificateDetailPage: Certificate loaded successfully. Data:", result.data); // لاگ تشخیصی
             } else {
                 setError(result.message);
+                console.error("CertificateDetailPage: Failed to load certificate. Error:", result.message); // لاگ تشخیصی
             }
         } catch (error) {
             setError('خطا در دریافت اطلاعات گواهی‌نامه');
+            console.error("CertificateDetailPage: Error in loadCertificate catch block:", error); // لاگ تشخیصی
         }
 
         setIsLoading(false);
@@ -56,7 +60,7 @@ const CertificateDetailPage = () => {
 
         if (result.success) {
             alert(result.message);
-            navigate('/certificates');
+            navigate('/dashboard/certificates');
         } else {
             alert(result.message);
         }
@@ -65,6 +69,7 @@ const CertificateDetailPage = () => {
     const handleEditSuccess = (updatedCertificate) => {
         setCertificate(updatedCertificate);
         setIsEditing(false);
+        navigate('/dashboard/certificates');
     };
 
     const handleEditCancel = () => {
@@ -97,7 +102,7 @@ const CertificateDetailPage = () => {
                         <button onClick={loadCertificate} className="btn btn-primary">
                             تلاش مجدد
                         </button>
-                        <Link to="/certificates" className="btn btn-secondary">
+                        <Link to="/dashboard/certificates" className="btn btn-secondary">
                             بازگشت به لیست
                         </Link>
                     </div>
@@ -105,6 +110,25 @@ const CertificateDetailPage = () => {
             </div>
         );
     }
+
+    // اگر certificate هنوز null باشد، به این معنی است که اطلاعات هنوز بارگذاری نشده یا خطا رخ داده
+    // در این حالت، نمایش CertificateForm باعث خطا می‌شود
+    if (!certificate && !isLoading) { // اگر loading تمام شده و certificate هنوز null است
+        return (
+            <div className="page-container">
+                <div className="error-container">
+                    <h3>اطلاعات گواهی‌نامه در دسترس نیست</h3>
+                    <p>گواهی‌نامه مورد نظر یافت نشد یا مشکلی در بارگذاری اطلاعات آن پیش آمده است.</p>
+                    <div className="error-actions">
+                        <Link to="/dashboard/certificates" className="btn btn-secondary">
+                            بازگشت به لیست
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
 
     if (isEditing && isAdmin()) {
         return (
@@ -122,17 +146,17 @@ const CertificateDetailPage = () => {
         <div className="page-container">
             <div className="page-header">
                 <div className="header-content">
-                    <h1>{certificate.title}</h1>
+                    <h1>{certificate.id || 'نامشخص'}</h1> {/* از ID به عنوان عنوان اصلی استفاده شد */}
                     <div className="header-meta">
-            <span className={`status-badge ${certificate.is_active ? 'active' : 'inactive'}`}>
-              {certificate.is_active ? 'فعال' : 'غیرفعال'}
+            <span className={`status-badge ${certificate.status === 'active' ? 'active' : 'inactive'}`}>
+              {certificate.status || 'نامشخص'}
             </span>
                         <span className="certificate-id">شناسه: {certificate.id}</span>
                     </div>
                 </div>
 
                 <div className="header-actions">
-                    <Link to="/certificates" className="btn btn-outline">
+                    <Link to="/dashboard/certificates" className="btn btn-outline">
                         بازگشت به لیست
                     </Link>
 
@@ -166,61 +190,73 @@ const CertificateDetailPage = () => {
                                 <div className="info-item">
                                     <span className="info-label">دانشجو:</span>
                                     <span className="info-value">
-                    {certificate.student_name || certificate.student?.full_name || 'نامشخص'}
-                  </span>
+                                        {certificate.student?.full_name || 'نامشخص'}
+                                    </span>
                                 </div>
 
                                 <div className="info-item">
                                     <span className="info-label">دوره:</span>
                                     <span className="info-value">
-                    {certificate.course_name || certificate.course?.title || 'نامشخص'}
-                  </span>
+                                        {certificate.course?.name || 'نامشخص'}
+                                    </span>
                                 </div>
 
                                 <div className="info-item">
                                     <span className="info-label">تاریخ صدور:</span>
                                     <span className="info-value">
-                    {formatDate(certificate.issue_date)}
-                  </span>
+                                        {formatDate(certificate.issue_date)}
+                                    </span>
                                 </div>
 
-                                {certificate.completion_date && (
+                                {certificate.expiry_date && (
                                     <div className="info-item">
-                                        <span className="info-label">تاریخ تکمیل:</span>
+                                        <span className="info-label">تاریخ انقضا:</span>
                                         <span className="info-value">
-                      {formatDate(certificate.completion_date)}
-                    </span>
-                                    </div>
-                                )}
-
-                                {certificate.grade && (
-                                    <div className="info-item">
-                                        <span className="info-label">نمره:</span>
-                                        <span className="info-value">{certificate.grade}</span>
+                                            {formatDate(certificate.expiry_date)}
+                                        </span>
                                     </div>
                                 )}
 
                                 <div className="info-item">
+                                    <span className="info-label">وضعیت:</span>
+                                    <span className="info-value">
+                                        {certificate.status || 'نامشخص'}
+                                    </span>
+                                </div>
+
+                                {certificate.unique_code && (
+                                    <div className="info-item">
+                                        <span className="info-label">کد یکتا:</span>
+                                        <span className="info-value">
+                                            {certificate.unique_code}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {certificate.created_by_email && (
+                                    <div className="info-item">
+                                        <span className="info-label">صادرکننده:</span>
+                                        <span className="info-value">
+                                            {certificate.created_by_email}
+                                        </span>
+                                    </div>
+                                )}
+
+
+                                <div className="info-item">
                                     <span className="info-label">تاریخ ایجاد:</span>
                                     <span className="info-value">
-                    {formatDate(certificate.created_at)}
-                  </span>
+                                        {formatDate(certificate.created_at)}
+                                    </span>
                                 </div>
 
                                 <div className="info-item">
                                     <span className="info-label">آخرین بروزرسانی:</span>
                                     <span className="info-value">
-                    {formatDate(certificate.updated_at)}
-                  </span>
+                                        {formatDate(certificate.updated_at)}
+                                    </span>
                                 </div>
                             </div>
-
-                            {certificate.description && (
-                                <div className="description-section">
-                                    <h4>توضیحات:</h4>
-                                    <p>{certificate.description}</p>
-                                </div>
-                            )}
                         </div>
 
                         <div className="actions-card">

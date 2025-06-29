@@ -49,14 +49,6 @@ const StudentsPage = () => {
                             ایجاد دانشجوی جدید
                         </button>
                     )}
-
-                    <Link to="/students/import" className="btn btn-secondary">
-                        ورود دسته‌ای
-                    </Link>
-
-                    <Link to="/students/export" className="btn btn-outline">
-                        خروجی Excel
-                    </Link>
                 </div>
             </div>
 

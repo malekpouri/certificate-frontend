@@ -66,12 +66,13 @@ const CertificateCard = ({ certificate, onUpdate, onDelete }) => {
     return (
         <div className="certificate-card">
             <div className="certificate-card-header">
+                {/* عنوان کارت را از ID یا نام دانشجو/دوره می‌سازیم */}
                 <h3 className="certificate-title">
-                    {certificate.title || 'بدون عنوان'}
+                    {certificate.student?.full_name || certificate.id || 'بدون عنوان'}
                 </h3>
                 <div className="certificate-status">
-          <span className={`status-badge ${certificate.is_active ? 'active' : 'inactive'}`}>
-            {certificate.is_active ? 'فعال' : 'غیرفعال'}
+          <span className={`status-badge ${certificate.status === 'active' ? 'active' : 'inactive'}`}>
+            {certificate.status || 'نامشخص'}
           </span>
                 </div>
             </div>
@@ -81,39 +82,34 @@ const CertificateCard = ({ certificate, onUpdate, onDelete }) => {
                     <div className="info-item">
                         <span className="info-label">دانشجو:</span>
                         <span className="info-value">
-              {certificate.student_name || certificate.student?.full_name || 'نامشخص'}
-            </span>
+                            {certificate.student?.full_name || 'نامشخص'}
+                        </span>
                     </div>
 
                     <div className="info-item">
                         <span className="info-label">دوره:</span>
                         <span className="info-value">
-              {certificate.course_name || certificate.course?.title || 'نامشخص'}
-            </span>
+                            {certificate.course?.name || 'نامشخص'}
+                        </span>
                     </div>
 
                     <div className="info-item">
                         <span className="info-label">تاریخ صدور:</span>
                         <span className="info-value">
-              {formatDate(certificate.issue_date)}
-            </span>
+                            {formatDate(certificate.issue_date)}
+                        </span>
                     </div>
 
-                    {certificate.completion_date && (
+                    {certificate.expiry_date && (
                         <div className="info-item">
-                            <span className="info-label">تاریخ تکمیل:</span>
+                            <span className="info-label">تاریخ انقضا:</span>
                             <span className="info-value">
-                {formatDate(certificate.completion_date)}
-              </span>
+                                {formatDate(certificate.expiry_date)}
+                            </span>
                         </div>
                     )}
 
-                    {certificate.grade && (
-                        <div className="info-item">
-                            <span className="info-label">نمره:</span>
-                            <span className="info-value">{certificate.grade}</span>
-                        </div>
-                    )}
+                    {/* completion_date و grade حذف شدند */}
                 </div>
 
                 {showQR && qrCodeUrl && (
@@ -125,7 +121,7 @@ const CertificateCard = ({ certificate, onUpdate, onDelete }) => {
 
             <div className="certificate-card-actions">
                 <Link
-                    to={`/certificates/${certificate.id}`}
+                    to={`/dashboard/certificates/${certificate.id}`}
                     className="btn btn-primary btn-sm"
                 >
                     مشاهده
@@ -162,7 +158,7 @@ const CertificateCard = ({ certificate, onUpdate, onDelete }) => {
                 </div>
 
                 <Link
-                    to={`/certificates/${certificate.id}/edit`}
+                    to={`/dashboard/certificates/${certificate.id}/edit`}
                     className="btn btn-outline btn-sm"
                 >
                     ویرایش
