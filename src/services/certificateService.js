@@ -1,11 +1,29 @@
 import { getAuthHeader } from '../utils/tokenHelper';
 
+import studentService from './studentService';
+import courseService from './courseService';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const handleResponse = async (response) => {
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || error.detail || 'خطا در برقراری ارتباط با سرور');
+        let errorData = {};
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { message: 'خطا در برقراری ارتباط با سرور یا پاسخ غیرقابل خواندن' };
+        }
+
+        if (response.status === 400) {
+            const errorMessage = errorData.detail || Object.values(errorData).flat().join(' و ') || 'خطا در اطلاعات ارسالی';
+            throw { status: 400, message: errorMessage, errors: errorData };
+        }
+
+        throw new Error(errorData.message || errorData.detail || 'خطا در برقراری ارتباط با سرور');
+    }
+
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+        return {};
     }
 
     return response.json();
@@ -33,8 +51,6 @@ export const getCertificates = async (filters = {}) => {
         const queryParams = new URLSearchParams();
 
         if (filters.search) queryParams.append('search', filters.search);
-        if (filters.student) queryParams.append('student', filters.student);
-        if (filters.course) queryParams.append('course', filters.course);
         if (filters.page) queryParams.append('page', filters.page);
         if (filters.page_size) queryParams.append('page_size', filters.page_size);
 
@@ -53,7 +69,8 @@ export const getCertificates = async (filters = {}) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در دریافت گواهی‌نامه‌ها'
+            message: error.message?.message || error.message || 'خطا در دریافت گواهی‌نامه‌ها',
+            errors: error.errors || {}
         };
     }
 };
@@ -69,16 +86,25 @@ export const getCertificate = async (id) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در دریافت گواهی‌نامه'
+            message: error.message?.message || error.message || 'خطا در دریافت اطلاعات گواهی‌نامه',
+            errors: error.errors || {}
         };
     }
 };
 
 export const createCertificate = async (certificateData) => {
     try {
+        const payload = {
+            student_id: certificateData.student_id,
+            course_id: certificateData.course_id,
+            issue_date: certificateData.issue_date,
+            expiry_date: certificateData.expiry_date,
+            status: certificateData.status,
+        };
+
         const data = await apiRequest('/certificates/', {
             method: 'POST',
-            body: JSON.stringify(certificateData),
+            body: JSON.stringify(payload),
         });
 
         return {
@@ -89,27 +115,36 @@ export const createCertificate = async (certificateData) => {
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در ایجاد گواهی‌نامه'
+            message: error.message?.message || error.message || 'خطا در ایجاد گواهی‌نامه',
+            errors: error.errors || {}
         };
     }
 };
 
 export const updateCertificate = async (id, certificateData) => {
     try {
+        const payload = {
+            student_id: certificateData.student_id,
+            course_id: certificateData.course_id,
+            issue_date: certificateData.issue_date,
+            expiry_date: certificateData.expiry_date,
+            status: certificateData.status,
+        };
         const data = await apiRequest(`/certificates/${id}/`, {
             method: 'PUT',
-            body: JSON.stringify(certificateData),
+            body: JSON.stringify(payload),
         });
 
         return {
             success: true,
             data: data,
-            message: 'گواهی‌نامه با موفقیت بروزرسانی شد'
+            message: 'اطلاعات گواهی‌نامه با موفقیت بروزرسانی شد'
         };
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در بروزرسانی گواهی‌نامه'
+            message: error.message?.message || error.message || 'خطا در بروزرسانی اطلاعات گواهی‌نامه',
+            errors: error.errors || {}
         };
     }
 };
@@ -122,12 +157,13 @@ export const deleteCertificate = async (id) => {
 
         return {
             success: true,
-            message: 'گواهی‌نامه با موفقیت حذف شد'
+            message: 'دانشجو با موفقیت حذف شد'
         };
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در حذف گواهی‌نامه'
+            message: error.message?.message || error.message || 'خطا در حذف دانشجو',
+            errors: error.errors || {}
         };
     }
 };
@@ -161,20 +197,45 @@ export const getCertificateQRCode = async (id) => {
 
 export const validateCertificate = async (validationData) => {
     try {
-        const data = await apiRequest('/certificates/validate/', {
-            method: 'POST',
-            body: JSON.stringify(validationData),
-        });
+        let certificateId = validationData.certificate_id;
+        if (validationData.qr_code && validationData.qr_code.includes('/validate/')) {
+            const parts = validationData.qr_code.split('/');
+            certificateId = parts[parts.length - 1];
+        } else if (validationData.qr_code) {
+            certificateId = validationData.qr_code;
+        }
 
-        return {
-            success: true,
-            data: data,
-            message: data.valid ? 'گواهی‌نامه معتبر است' : 'گواهی‌نامه معتبر نیست'
-        };
+        if (!certificateId) {
+            return {
+                success: false,
+                message: 'شناسه گواهی‌نامه یا محتوای QR معتبر نیست',
+                valid: false
+            };
+        }
+
+        const result = await getCertificate(certificateId); // فراخوانی getCertificate
+
+        if (result.success) { // اگر getCertificate موفق بود
+            return {
+                success: true, // عملیات اعتبارسنجی (API call) موفق بود
+                valid: true, // گواهی‌نامه معتبر است
+                certificate: result.data,
+                message: 'گواهی‌نامه معتبر است'
+            };
+        } else { // اگر getCertificate ناموفق بود (مثلاً 404)
+            return {
+                success: false, // عملیات اعتبارسنجی ناموفق بود (گواهی‌نامه پیدا نشد/خطا)
+                valid: false,
+                certificate: null,
+                message: result.message || 'گواهی‌نامه معتبر نیست'
+            };
+        }
     } catch (error) {
         return {
             success: false,
-            message: error.message || 'خطا در بررسی گواهی‌نامه'
+            valid: false,
+            message: error.message?.message || error.message || 'خطا در بررسی گواهی‌نامه',
+            errors: error.errors || {}
         };
     }
 };
@@ -224,6 +285,8 @@ const certificateService = {
     getCertificateQRCode,
     validateCertificate,
     downloadCertificate,
+    getStudents: studentService.getStudents,
+    getCourses: courseService.getCourses,
 };
 
 export default certificateService;

@@ -22,9 +22,7 @@ const CertificateList = ({
 
     const [searchFilters, setSearchFilters] = useState({
         search: '',
-        student: '',
-        course: '',
-        is_active: '',
+        // Removed student, course, is_active filters based on backend GET example
         ...filters
     });
 
@@ -38,7 +36,7 @@ const CertificateList = ({
 
         try {
             const result = await certificateService.getCertificates({
-                ...searchFilters,
+                search: searchFilters.search, // Only search filter is sent
                 page: pagination.page,
                 page_size: pageSize,
             });
@@ -91,20 +89,13 @@ const CertificateList = ({
     };
 
     const handleCertificateDelete = (deletedId) => {
-        setCertificates(prev => prev.filter(cert => cert.id !== deletedId));
-        setPagination(prev => ({
-            ...prev,
-            totalCount: prev.totalCount - 1,
-            totalPages: Math.ceil((prev.totalCount - 1) / pageSize)
-        }));
+        loadCertificates(); // Re-fetch the list after deletion
     };
 
     const resetFilters = () => {
         setSearchFilters({
             search: '',
-            student: '',
-            course: '',
-            is_active: '',
+            // Removed other filter fields
         });
         setPagination(prev => ({ ...prev, page: 1 }));
     };
@@ -138,18 +129,7 @@ const CertificateList = ({
                                 />
                             </div>
 
-                            <div className="filter-group">
-                                <select
-                                    name="is_active"
-                                    value={searchFilters.is_active}
-                                    onChange={handleFilterChange}
-                                    className="filter-select"
-                                >
-                                    <option value="">همه وضعیت‌ها</option>
-                                    <option value="true">فعال</option>
-                                    <option value="false">غیرفعال</option>
-                                </select>
-                            </div>
+                            {/* Removed student, course, is_active filter select inputs */}
 
                             <div className="filter-actions">
                                 <button type="submit" className="btn btn-primary btn-sm">

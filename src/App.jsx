@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import useAuth from './hooks/useAuth';
 import LoginPage from './pages/LoginPage.jsx';
@@ -19,13 +19,14 @@ import './styles/App.css';
 
 const HomePage = () => {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     const handleLoginClick = () => {
-        window.location.href = '/login';
+        navigate('/login');
     };
 
     const handleDashboardClick = () => {
-        window.location.href = '/dashboard';
+        navigate('/dashboard');
     };
 
     return (
@@ -103,7 +104,7 @@ function App() {
                         }
                     >
                         {/* Nested routes for managing students, courses, certificates */}
-                        <Route index element={<div className="dashboard-content">محتوای داشبورد اصلی</div>} /> {/* Default content for /dashboard */}
+                        <Route index element={<div className="dashboard-content">محتوای داشبورد اصلی</div>} />
 
                         <Route path="students" element={<StudentsPage />} />
                         <Route path="students/new" element={<StudentForm />} />
@@ -123,7 +124,9 @@ function App() {
                         {/* Add other protected routes here */}
                     </Route>
 
-                    <Route path="/validate" element={<CertificateValidator />} /> {/* This route will be /dashboard/validate */}
+                    {/* مسیر تأیید گواهی‌نامه - /validate/:id? - id اختیاری است */}
+                    <Route path="/validate" element={<CertificateValidator />} />
+                    <Route path="/validate/:id?" element={<CertificateValidator />} />
                     {/* Fallback for unmatched routes */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
